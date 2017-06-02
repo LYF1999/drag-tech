@@ -5,7 +5,7 @@ import './style.less';
 const App = () => {
   return (
     <div>
-      hello world 5
+      hello world!
       <img src={require('./avatar.png')} />
     </div>
   )

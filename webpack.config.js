@@ -72,9 +72,8 @@ if (DEV) {
 
   config.module.rules.push()
 } else {
-
-  config.plugins.push(new ExtractTextPlugin("index-[contenthash:8].css"));
   config.output.filename = "[name]-[chunkhash:8].js";
+  config.plugins.push(new ExtractTextPlugin("index-[contenthash:8].css"));
 }
 
 
