@@ -17,11 +17,19 @@ const config = {
     publicPath: 'http://localhost:3000/static/'
   },
   plugins: [],
+  resolve: {
+    // Add '.ts' and '.tsx' as resolvable extensions.
+    extensions: [".ts", ".tsx", ".js", ".json"]
+  },
   module: {
     rules: [
       {
+        test: /\.tsx?$/,
+        loader: "babel-loader!awesome-typescript-loader",
+        include: path.join(__dirname, 'src')
+      }, {
         test: /\.js$/,
-        use: ['babel-loader', 'eslint-loader'],
+        use: ['babel-loader'],
         include: path.join(__dirname, 'src')
       }, {
         test: /\.less$/,

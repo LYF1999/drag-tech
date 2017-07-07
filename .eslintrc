@@ -33,6 +33,6 @@
   "globals": {
     "window": true,
     "NProgress": true,
-    "document": true
+    "document": true,
   }
 }
