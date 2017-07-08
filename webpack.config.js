@@ -59,7 +59,7 @@ const config = {
 };
 
 config.module.rules.push({
-  test: /\.(jpe?g|png|gif|ttf)$/i,
+  test: /\.(jpe?g|png|gif|ttf|svg|eot|woff)$/i,
   loaders: DEV ? "url-loader" : 'file-loader',
   query: DEV ? {} : {
     name: 'static/[name]-[hash:8].[ext]',

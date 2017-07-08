@@ -1,10 +1,9 @@
-import React, { isValidElement } from 'react';
-import { findDOMNode } from 'react-dom';
+import React from 'react';
 import { DropTarget } from 'react-dnd';
 import _ from 'lodash';
 
 import DropComponent from './DropComponent';
-import Card from './DraggableCard';
+import DragComponent from './DragComponent';
 
 const squareTarget = {
   canDrop(props) {
@@ -12,9 +11,10 @@ const squareTarget = {
   },
 
   drop(props) {
+
   },
   hover() {
-  }
+  },
 };
 
 
@@ -25,61 +25,52 @@ function collect(connect, monitor) {
     canDrop: monitor.canDrop(),
     didDrop: monitor.didDrop(),
     item: monitor.getItem(),
-    result: monitor.getDropResult()
+    result: monitor.getDropResult(),
   };
 }
 
-@DropTarget('Card', squareTarget, collect)
+@DropTarget(['Card', 'component'], squareTarget, collect)
 class DropContent extends React.Component {
 
   static propTypes = {};
   static defaultProps = {};
 
+  insertPlaceHolder = null;
+
+  placeHolder = {
+    type: 'placeholder',
+    props: {
+      style: { backgroundColor: 'blue', width: '100%', height: 3 },
+    },
+  };
+
   state = {
     components: [{
-      type: 'bottom',
+      type: 'div',
       props: {
         style: {
           width: '100%',
           height: '20px',
-        }
-      }
+        },
+      },
     }],
     havePlaceHolder: false,
+    onDragIndex: undefined,
   };
 
 
-  insertPlaceHolder = null;
-
-  childrenOffset = {};
-
-  placeHolder = { type: 'placeHolder', props: { style: { backgroundColor: 'red', width: '100%', height: 20 } } };
-
-
-  getChildrenOffset(children) {
-    const result = {};
-    _.forEach(children, (child, index) => {
-      const realDOM = this.refs[`component-${index}`];
-      result[index] = {
-        top: realDOM.offsetTop,
-        left: realDOM.offsetLeft,
-      }
-    });
-    return result;
-  }
-
   componentWillReceiveProps(nextProps) {
-    let placeHolderIndex = this.getPlaceHolderIndex(this.state.components);
+    const placeHolderIndex = this.getPlaceHolderIndex(this.state.components);
     const length = this.state.components.length;
 
     if (placeHolderIndex === undefined) {
       if (nextProps.didDrop === false && nextProps.isOver && !this.state.havePlaceHolder) {
         this.insertPlaceHolder = setTimeout(() => {
-          this.setState((preState) => ({
+          this.setState(preState => ({
             components: [
               ...preState.components.slice(0, length - 1),
               this.placeHolder,
-              preState.components[length - 1]
+              preState.components[length - 1],
             ],
             havePlaceHolder: true,
           }));
@@ -91,23 +82,68 @@ class DropContent extends React.Component {
     }
 
     if (this.props.didDrop === false && nextProps.didDrop === true) {
-      this.setState((preState) => ({
-        components: [
-          ...preState.components.slice(0, placeHolderIndex),
-          {
-            type: 'Card',
-            props: nextProps.item,
-            ref: `component-${length}`
-          },
-          ...preState.components.slice(placeHolderIndex + 1)
-        ],
-        havePlaceHolder: false,
-      }));
+      const item = nextProps.item;
+      if (item.props.inContent === true) {
+        if (this.state.onDragIndex !== undefined) {
+          if (this.state.onDragIndex < placeHolderIndex) {
+            this.setState(preState => {
+              return {
+                components: [
+                  ...preState.components.slice(0, preState.onDragIndex),
+                  ...preState.components.slice(preState.onDragIndex + 1, placeHolderIndex),
+                  item.props.component,
+                  ...preState.components.slice(placeHolderIndex + 1)
+                ]
+              }
+            })
+          } else if (this.state.onDragIndex >= placeHolderIndex) {
+            this.setState(preState => {
+              return {
+                components: [
+                  ...preState.components.slice(0, placeHolderIndex),
+                  item.props.component,
+                  ...preState.components.slice(placeHolderIndex + 1, this.state.onDragIndex + 1),
+                  ...preState.components.slice(this.state.onDragIndex + 2)
+                ]
+              }
+            })
+          }
+          return
+        }
+
+
+        this.setState((preState) => {
+          return {
+            components: [
+              ...preState.components.slice(0, placeHolderIndex),
+              item.props.component,
+              ...preState.components.slice(placeHolderIndex + 1),
+            ],
+          }
+        });
+        return;
+      }
+
+      this.setState((preState) => {
+        return {
+          components: [
+            ...preState.components.slice(0, placeHolderIndex),
+            {
+              type: nextProps.item.props.componentClass,
+              props: { ...nextProps.item.props.props, inContent: true },
+              ref: `component-${length}`,
+              showIcon: true,
+            },
+            ...preState.components.slice(placeHolderIndex + 1),
+          ],
+          havePlaceHolder: false,
+        }
+      });
       return;
     }
 
     if (this.props.isOver === true && nextProps.isOver === false) {
-      this.setState((preState) => ({
+      this.setState(preState => ({
         components: [
           ...preState.components.slice(0, placeHolderIndex),
           ...preState.components.slice(placeHolderIndex + 1),
@@ -115,7 +151,6 @@ class DropContent extends React.Component {
         havePlaceHolder: false,
       }));
     }
-
   }
 
   componentDidUpdate() {
@@ -125,7 +160,7 @@ class DropContent extends React.Component {
   getPlaceHolderIndex = (components) => {
     let placeHolderIndex;
     for (const [index, component] of components.entries()) {
-      if (component.type === 'placeHolder') {
+      if (component.type === 'placeholder') {
         placeHolderIndex = index;
       }
     }
@@ -143,19 +178,15 @@ class DropContent extends React.Component {
         const components = preState.components;
         const placeHolderIndex = this.getPlaceHolderIndex(components);
 
-        console.log(placeHolderIndex, index);
-
         if (placeHolderIndex === undefined) {
           return {
             components: [
               ...components.slice(0, index),
               this.placeHolder,
-              ...components.slice(index)
-            ]
-          }
+              ...components.slice(index),
+            ],
+          };
         }
-
-
 
 
         if (placeHolderIndex < index) {
@@ -164,27 +195,145 @@ class DropContent extends React.Component {
               ...components.slice(0, placeHolderIndex),
               ...components.slice(placeHolderIndex + 1, index),
               this.placeHolder,
-              ...components.slice(index)
-            ]
-          }
+              ...components.slice(index),
+            ],
+          };
         } else if (placeHolderIndex > index) {
           return {
             components: [
               ...components.slice(0, index),
               this.placeHolder,
               ...components.slice(index, placeHolderIndex),
-              ...components.slice(placeHolderIndex + 1)
-            ]
-          }
+              ...components.slice(placeHolderIndex + 1),
+            ],
+          };
         }
-      })
+      });
+    });
+  };
+
+  findIndexByRef = (components, ref) => {
+    for (const [index, component] of components.entries()) {
+      if (component.ref === ref) {
+        return index;
+      }
+    }
+  };
+
+
+  createComponent = (component) => {
+
+    const props = component.props;
+
+    const otherProps = {};
+
+    if (Reflect.has(props, 'onChange')) {
+      otherProps.onChange = (value) => {
+        this.setState(preState => {
+          const index = this.findIndexByRef(preState.components, component.ref);
+          const result = props.onChange(value);
+          const newComponent = {
+            ...component,
+            props: {
+              ...component.props,
+              ...result,
+            },
+          };
+
+          return {
+            components: [
+              ...preState.components.slice(0, index),
+              newComponent,
+              ...preState.components.slice(index + 1)
+            ]
+          };
+        });
+      };
+    }
+
+
+    const newProps = {
+      ...props,
+      ...otherProps,
+    };
+
+    if (component.type === 'placeholder') {
+      return <div {...newProps} />
+    } else {
+      return <component.type {...newProps} />
+    }
+  };
+
+  onDrag = (props) => {
+    this.setState({
+      onDragIndex: props.index,
+    })
+  };
+
+  endDrag = (props) => {
+    this.setState({
+      onDragIndex: undefined,
+    })
+  }
+
+
+  onDelete = (component) => {
+    this.setState((preState) => {
+      const index = this.findIndexByRef(preState.components, component.ref);
+      return {
+        components: [
+          ...preState.components.slice(0, index),
+          ...preState.components.slice(index + 1)
+        ]
+      }
     })
   };
 
 
-  render() {
-    const { x, y, connectDropTarget, isOver, canDrop, children } = this.props;
+  onReady = (component) => {
+    this.setState((preState) => {
+      const index = this.findIndexByRef(preState.components, component.ref);
+      const newComponent = {
+        ...component,
+        props: {
+          ...component.props,
+          canDrag: true,
+        },
+        canDrag: true,
+      };
+      return {
+        components: [
+          ...preState.components.slice(0, index),
+          newComponent,
+          ...preState.components.slice(index + 1)
+        ]
+      }
+    })
+  };
 
+  onCancelReady = (component) => {
+    this.setState((preState) => {
+      const index = this.findIndexByRef(preState.components, component.ref);
+      const newComponent = {
+        ...component,
+        props: {
+          ...component.props,
+          canDrag: false,
+        },
+      };
+      return {
+        components: [
+          ...preState.components.slice(0, index),
+          newComponent,
+          ...preState.components.slice(index + 1)
+        ]
+      }
+    })
+  }
+
+
+  render() {
+    const { connectDropTarget } = this.props;
 
     return connectDropTarget(
       <div
@@ -195,14 +344,32 @@ class DropContent extends React.Component {
           height: '100%',
         }}
       >
-        <div style={{ width: 400, height: 400, overflow: 'auto' }}>
+        <div style={{ minHeight: 400, overflow: 'auto' }}>
           {_.map(this.state.components, (component, index) => (
-            <div ref={component.ref} key={index} style={{ width: '100%' }}>
+            <div
+              ref={component.ref}
+              style={{ width: '100%' }}
+            >
               <DropComponent
                 index={index}
                 handleOver={this.handleOver}
+                showIcon={component.showIcon}
+                component={component}
+                onDelete={this.onDelete}
               >
-                <Card {...component.props} />
+                <DragComponent
+                  inContent
+                  index={index}
+                  onDrag={this.onDrag}
+                  endDrag={this.endDrag}
+                  onReady={this.onReady}
+                  showIcon={component.showIcon}
+                  component={component}
+                  canDrag={component.canDrag}
+                  onCancelReady={this.onCancelReady}
+                >
+                  {this.createComponent(component)}
+                </DragComponent>
               </DropComponent>
             </div>
           ))}
@@ -212,4 +379,4 @@ class DropContent extends React.Component {
   }
 }
 
-export default DropContent
+export default DropContent;
