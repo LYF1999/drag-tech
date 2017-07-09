@@ -40,7 +40,7 @@ class DropContent extends React.Component {
   placeHolder = {
     type: 'placeholder',
     props: {
-      style: { backgroundColor: 'blue', width: '100%', height: 3 },
+      style: { backgroundColor: 'rgba(78,188,221,2.15)', width: '100%', height: 3, position: 'relative' },
     },
   };
 
@@ -318,8 +318,9 @@ class DropContent extends React.Component {
         ...component,
         props: {
           ...component.props,
-          canDrag: false,
+          canDrag: false
         },
+        canDrag: false,
       };
       return {
         components: [

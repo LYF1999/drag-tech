@@ -18,8 +18,10 @@ class CodeMirror extends React.Component {
       dragDrop: false,
     };
     if (this.props.canDrag) {
-      options.configureMouse  = {
-        moveOnDrag: true,
+      options.configureMouse = function () {
+        return {
+          moveOnDrag: true,
+        }
       }
     }
 

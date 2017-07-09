@@ -1,15 +1,10 @@
 import React, { PropTypes } from 'react';
-import { Input } from 'antd';
+import { Icon } from 'antd';
 
 class Text extends React.Component {
 
   static propTypes = {};
   static defaultProps = {};
-
-
-  onChange = (e) => {
-    this.props.onChange(e.target.value);
-  };
 
   pen = undefined;
 
@@ -21,7 +16,10 @@ class Text extends React.Component {
 
   render() {
     return (
-      <div style={{ marginBottom: 10 }} id="editor" />
+      <div>
+        <Icon type="file-text" />
+        <div style={{ marginBottom: 10 }} id="editor" />
+      </div>
     );
   }
 }

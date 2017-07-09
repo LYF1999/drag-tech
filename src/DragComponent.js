@@ -25,6 +25,10 @@ const dragSource = {
 }))
 export default class DragComponent extends React.Component {
 
+  state = {
+    ready: false
+  };
+
   onReady = () => {
     this.props.onReady(this.props.component);
   };
@@ -33,18 +37,34 @@ export default class DragComponent extends React.Component {
     this.props.onCancelReady(this.props.component);
   };
 
+  onMouseEnter = () => {
+    this.setState({
+      ready: true,
+    });
+  };
+
+  onMouseLeave = () => {
+    this.setState({
+      ready: false
+    })
+  };
+
 
   render() {
     const { isDragging, connectDragSource } = this.props;
     return connectDragSource(
-      <div style={{ opacity: (isDragging ? 0.5 : 1), ...this.props.style }}>
-        {this.props.showIcon && (
+      <div
+        onMouseEnter={this.onMouseEnter}
+        onMouseLeave={this.onMouseLeave}
+        style={{ opacity: (isDragging ? 0.5 : 1), position: 'relative', paddingLeft: 25, ...this.props.style }}
+      >
+        {this.props.showIcon && this.state.ready && (
           <Icon
             type="plus"
             className="can-click"
             onMouseEnter={this.onReady}
             onMouseLeave={this.onCancelReady}
-            style={{ position: 'absolute', left: 75, top: 5, zIndex: 10, fontSize: 20 }}
+            style={{ position: 'absolute', left: 0, top: 5, zIndex: 10, fontSize: 20 }}
           />
         )}
         {this.props.children}

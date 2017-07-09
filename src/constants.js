@@ -5,6 +5,8 @@
 
 import Text from './Components/Text';
 import CodeMirror from './Components/CodeMirror';
+import Img from './Components/Img';
+import SougouTranslate from './Components/SougouTranslate';
 
 
 export const Components = [
@@ -38,5 +40,20 @@ export const Components = [
     },
     text: 'Code',
     desc: '代码块',
-  }
+  },
+  {
+    imgSrc: '',
+    componentClass: SougouTranslate,
+    componentProps: {
+      style: { width: '100%' },
+      value: '// 请输入代码',
+      onChange(value) {
+        return {
+          value,
+        };
+      },
+    },
+    text: 'Translate',
+    desc: '搜狗翻译',
+  },
 ];

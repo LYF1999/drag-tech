@@ -9,8 +9,8 @@ const squareTarget = {
   drop(props) {
 
   },
-
   hover() {
+
   }
 };
 
@@ -68,7 +68,7 @@ export default class DropComponent extends React.Component {
       <div
         onMouseEnter={this.onMouseEnter}
         onMouseLeave={this.onMouseLeave}
-        style={{ position: 'relative', paddingLeft: 100 }}>
+        style={{ position: 'relative', paddingLeft: 75 }}>
         {this.state.hover && this.props.showIcon && (
           <Icon
             onClick={this.onDelete}
