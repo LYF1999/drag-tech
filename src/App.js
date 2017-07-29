@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import { DragDropContext } from 'react-dnd';
 import _ from 'lodash';
-import { Breadcrumb } from 'antd';
+import { Breadcrumb, Button } from 'antd';
 import HTML5Backend from 'react-dnd-html5-backend';
 
 import DropContent from './DropContent';
@@ -20,7 +20,8 @@ class App extends Component {
 
   state = {
     isOpenSider: false,
-    backgroundImg: ''
+    backgroundImg: '',
+    element: 'div'
   };
 
   onMouseEnter = () => {
@@ -38,6 +39,17 @@ class App extends Component {
   render() {
     return (
       <div className="flex-stretch">
+        fucks
+        <Button
+          onClick={() => {
+            import('./Hello.js').then((Element) => {
+              console.log(Element);
+              this.setState({
+                  element: Element
+                }
+              )
+            })
+          }}>点击一下</Button>
         <div className="app-sider">
           <h2 style={{ margin: 20 }} className="text-center">Tech-Drag</h2>
         </div>
@@ -75,6 +87,9 @@ class App extends Component {
               ))}
             </div>
           )}
+          {
+            <this.state.element />
+          }
         </div>
       </div>
     );

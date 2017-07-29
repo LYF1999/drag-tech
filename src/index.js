@@ -12,7 +12,11 @@ render(
   document.getElementById('root'),
 );
 
+console.log('1231232131')
+
 if (module.hot) {
+  module.hot.accept();
+
   module.hot.accept('./App', () => {
     const NextApp = require('./App').default;
     render(
